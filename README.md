@@ -1,2 +1,2 @@
-# MySQLiDao
+# MySQLiLib
 simple mysql dao
