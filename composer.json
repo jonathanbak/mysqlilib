@@ -1,5 +1,5 @@
 {
-    "name": "jonathanbak/MySQLiLib",
+    "name": "jonathanbak/mysqlilib",
     "description":"Simple MySQLi Library",
     "keywords":["mysqli","mysqli library","simple db library","simple dao"],
     "type":"library",
