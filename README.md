@@ -5,6 +5,28 @@
 사용해보시고 이상있으면 메일주세요~ 언제든지 문의 환영입니다.
 
 ## Install
+```bash
+$ composer require jonathanbak/mysqlilib
+
+$ composer install
+```
+
+## Test
+phpunit.xml.dist 에 아래 내용을 본인의 MySQL 서버 정보를 넣고
+```bash
+<php>
+    <var name="DB_HOST" value="localhost" />
+    <var name="DB_USER" value="test" />
+    <var name="DB_PASSWD" value="test1234" />
+    <var name="DB_NAME" value="db_test" />
+    <var name="DB_PORT" value="3306" />
+</php>
+```
+phpunit 실행하여 테스트 해봅니다.
+```bash
+$ phpunit
+
+```
 
 ## Usage
 

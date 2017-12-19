@@ -13,10 +13,9 @@ class MySQLDb extends DbAbstract
     private $result_total_rows = 0;
     private $result_current_row = 0;
 
-    public function connect($host, $user, $password, $dbName)
+    public function connect($host, $user, $password, $dbName, $dbPort = '3306')
     {
-        $connection = @mysqli_connect($host, $user, $password, $dbName);
-
+        $connection = @mysqli_connect($host, $user, $password, $dbName, $dbPort);
         if (!$connection) {
             throw new Exception(mysqli_connect_error(), mysqli_connect_errno());
         }

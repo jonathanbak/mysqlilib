@@ -20,12 +20,12 @@
     },
     "autoload": {
         "psr-4": {
-            "MySQLiLib\\": "src/MySQLiLib"
+            "MySQLiLib\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "MySQLiLib\\": "tests/MySQLiLib"
+            "MySQLiLib\\Test\\": "test/"
         }
     }
 }
