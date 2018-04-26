@@ -11,7 +11,7 @@ abstract class DbAbstract implements DbInterface
 {
     protected $connection = null;	//DB connect
     protected $result = null;	//query 결과
-    protected $result_query = null; //query 결과 의 쿼리
+    protected $result_query = array(); //query 결과 의 쿼리
 
     /**
      * Dao constructor.

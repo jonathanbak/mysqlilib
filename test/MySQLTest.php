@@ -92,6 +92,7 @@ class MySQLTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
+     * 다중 반복문에서 fetch 를 사용하더라도 정상적으로 다음 쿼리를 가져옴
      * @depends testQueryInsert
      */
     public function testFetchWhile2(MySQLDb $MySQL)
@@ -100,7 +101,12 @@ class MySQLTest extends \PHPUnit_Framework_TestCase
         $list = array();
         while($row = $MySQL->fetch($query, array(5))){
 //            var_dump($row);
-            $list[] = $row;
+            $list_1 = $row; $list_2 = array();
+            while($row = $MySQL->fetch($query, array(1))){
+//            var_dump($row);
+                $list_2[] = $row;
+            }
+            $list[] = array($list_1, $list_2);
         }
 
         $this->assertEquals(2, count($list));

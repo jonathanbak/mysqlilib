@@ -10,8 +10,8 @@ namespace MySQLiLib;
 
 class MySQLDb extends DbAbstract
 {
-    private $result_total_rows = 0;
-    private $result_current_row = 0;
+    private $result_total_rows = array();
+    private $result_current_row = array();
 
     public function connect($host, $user, $password, $dbName, $dbPort = '3306')
     {
@@ -24,10 +24,10 @@ class MySQLDb extends DbAbstract
 
     public function query($query, $params = array())
     {
-        // TODO: Implement query() method.
         if(count($params)>0) $query = $this->parseCondition($query, $params);
+        var_dump($query);
         $this->result = mysqli_query($this->connection, $query);
-
+var_dump($this->result);
         return $this->result;
     }
 
@@ -39,31 +39,31 @@ class MySQLDb extends DbAbstract
      */
     public function fetch($query, $params = array())
     {
-        // TODO: Implement fetch() method.
         if(count($params)>0) $query = $this->parseCondition($query, $params);
-
-        if($this->result_query != md5($query)){
-            $this->query($query);
-            $this->result_query = md5($query);
-            $this->result_total_rows = $this->result->num_rows;
+        $mdKey = md5($query);
+        if(!isset($this->result_query[$mdKey])){
+            $this->result_query[$mdKey] = $this->query($query);
+            $this->result_total_rows[$mdKey] = $this->result_query[$mdKey]->num_rows;
+            $this->result_current_row[$mdKey] = 0;
         }else{
-            $this->result_current_row++;
-            if($this->result_total_rows <= $this->result_current_row) {
-                $this->result_query = null;
-                $this->result_current_row = 0;
-                $this->result_total_rows = 0;
+            $this->result_current_row[$mdKey]++;
+            if($this->result_total_rows[$mdKey] <= $this->result_current_row[$mdKey]) {
+                var_dump($this->result_query[$mdKey]);
+                unset($this->result_query[$mdKey]);
+                unset($this->result_current_row[$mdKey]);
+                unset($this->result_total_rows[$mdKey]);
             }
         }
 
-        if( is_a($this->result, 'mysqli_result') ) return $this->result->fetch_assoc() ;
+        if( isset($this->result_query[$mdKey]) && is_a($this->result_query[$mdKey], 'mysqli_result') ) return $this->result_query[$mdKey]->fetch_assoc() ;
 
-        return $this->result;
+        return isset($this->result_query[$mdKey])? isset($this->result_query[$mdKey]) : null;
     }
 
     public function close()
     {
-        $this->result_query = null;
-        // TODO: Implement close() method.
+        $this->result_query = array();
+
         return mysqli_close($this->connection);
     }
 
