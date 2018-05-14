@@ -25,9 +25,7 @@ class MySQLDb extends DbAbstract
     public function query($query, $params = array())
     {
         if(count($params)>0) $query = $this->parseCondition($query, $params);
-        var_dump($query);
         $this->result = mysqli_query($this->connection, $query);
-var_dump($this->result);
         return $this->result;
     }
 
@@ -48,7 +46,6 @@ var_dump($this->result);
         }else{
             $this->result_current_row[$mdKey]++;
             if($this->result_total_rows[$mdKey] <= $this->result_current_row[$mdKey]) {
-                var_dump($this->result_query[$mdKey]);
                 unset($this->result_query[$mdKey]);
                 unset($this->result_current_row[$mdKey]);
                 unset($this->result_total_rows[$mdKey]);
