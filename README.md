@@ -60,6 +60,17 @@ while($row = $DB->fetch($query, array(11))){
 var_dump($rows);
 ```
 
+test 테이블의 name LIKE '테스트%' 인 데이터 여러 행 가져오기
+
+```php
+$query = "SELECT * FROM test WHERE name LIKE '??%'";
+$rows = array();
+while($row = $DB->fetch($query, array('테스트'))){
+    $rows[] = $row;
+}
+var_dump($rows);
+```
+
 #### INSERT, UPDATE, DELETE
 
 ```php
@@ -70,4 +81,18 @@ var_dump($result);
 $query = "DELETE FROM test SET id = ?";
 $result = $DB->query($query, array(33));
 var_dump($result);
+```
+
+#### Exception
+
+test 테이블의 id = 33 인 데이터가 이미 입력되있을때 Duplicate entry '33' for key 'PRIMARY' 오류 발생시 
+
+```php
+try{
+    $query = "INSERT INTO test SET id = ?, reg_date = ?";
+    $result = $DB->query($query, array(33, date("Y-m-d H:i:s")));
+}catch(\MySQLiLib\Exception $e){
+    //print error message "Duplicate entry '33' for key 'PRIMARY'"
+    var_dump($e->getMessage());
+}
 ```

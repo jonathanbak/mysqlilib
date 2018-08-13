@@ -142,6 +142,32 @@ class MySQLTest extends \PHPUnit_Framework_TestCase
         return $MySQL;
     }
 
+    /**
+     * @depends testDropTable
+     * @expectedException Exception
+     */
+    public function testQueryError(MySQLDb $MySQL)
+    {
+        $query = "SELECT * FROM `tmp_table`; ";
+        $result = $MySQL->query($query);
+
+    }
+
+    /**
+     * @depends testDropTable
+     */
+    public function testCatchQueryError(MySQLDb $MySQL)
+    {
+        try{
+            $query = "SELECT * FROM `tmp_table`; ";
+            $result = $MySQL->query($query);
+        }catch (Exception $e){
+            $this->assertEquals($MySQL->errorNo(), $e->getCode());
+        }
+
+        return $MySQL;
+    }
+
 
     public static function tearDownAfterClass()
     {

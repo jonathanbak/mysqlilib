@@ -26,14 +26,30 @@ class MySQLDb extends DbAbstract
     {
         if(count($params)>0) $query = $this->parseCondition($query, $params);
         $this->result = mysqli_query($this->connection, $query);
+
+        if(mysqli_errno($this->connection)){
+            throw new Exception(mysqli_error($this->connection), mysqli_errno($this->connection));
+        }
+
         return $this->result;
+    }
+
+    public function error()
+    {
+        return mysqli_error($this->connection);
+    }
+
+    public function errorNo()
+    {
+        return mysqli_errno($this->connection);
     }
 
     /**
      * 한행 가져오기
      * @param $query
      * @param array $params
-     * @return null
+     * @return bool|mixed|null
+     * @throws Exception
      */
     public function fetch($query, $params = array())
     {
@@ -69,6 +85,7 @@ class MySQLDb extends DbAbstract
      * @param $query
      * @param array $params
      * @return array
+     * @throws Exception
      */
     public function fetchAll($query, $params = array())
     {
@@ -81,7 +98,8 @@ class MySQLDb extends DbAbstract
 
     /**
      * 마지막 입력 번호 가져오기 (auto increment column)
-     * @return bool|int
+     * @return mixed|null
+     * @throws Exception
      */
     public function lastInsertId()
     {
