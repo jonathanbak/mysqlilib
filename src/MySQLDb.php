@@ -73,6 +73,13 @@ class MySQLDb extends DbAbstract
         return isset($this->result_query[$mdKey])? isset($this->result_query[$mdKey]) : null;
     }
 
+    public function fetchOne($query, $params = array())
+    {
+        if(count($params)>0) $query = $this->parseCondition($query, $params);
+        $result = $this->query($query);
+        return $result->fetch_assoc();
+    }
+
     public function close()
     {
         $this->result_query = array();
