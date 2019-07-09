@@ -110,7 +110,7 @@ class MySQLDb extends DbAbstract
      */
     public function lastInsertId()
     {
-        $row = $this->fetch("select last_insert_id() as lastId");
+        $row = $this->fetchOne("select last_insert_id() as lastId");
         return $row ? array_pop($row) : null;
     }
 }
