@@ -14,15 +14,16 @@ abstract class DbAbstract implements DbInterface
     protected $result_query = array(); //query 결과 의 쿼리
 
     /**
-     * Dao constructor.
+     * DbAbstract constructor.
      * @param $host
      * @param $user
      * @param $password
      * @param $dbName
+     * @param int $dbPort
      */
-    public function __construct( $host, $user, $password, $dbName )
+    public function __construct( $host, $user, $password, $dbName, $dbPort = 3306 )
     {
-        $this->connection = $this->connect( $host, $user, $password, $dbName );
+        $this->connection = $this->connect( $host, $user, $password, $dbName, $dbPort );
     }
 
 

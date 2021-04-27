@@ -15,9 +15,10 @@ interface DbInterface
      * @param $user
      * @param $password
      * @param $dbName
+     * @param int $dbPort
      * @return mixed
      */
-    public function connect( $host, $user, $password, $dbName );
+    public function connect( $host, $user, $password, $dbName, $dbPort = 3306 );
 
     /**
      * 연결해재
