@@ -78,11 +78,28 @@ class MySQLTest extends \PHPUnit_Framework_TestCase
     /**
      * @depends testQueryInsert
      */
+    public function testQueryInsertPrepare(MySQLDb $MySQL)
+    {
+        $successCnt = 0;
+        for($i=11; $i<=20; $i++){
+            $query = "INSERT INTO `tmp_table` SET `t_id`=?, `t_datetime`= now();";
+            $MySQL->bind_param('i');
+            $result = $MySQL->query($query, array($i));
+            if($result) $successCnt++;
+        }
+
+        $this->assertEquals(10, $successCnt);
+        return $MySQL;
+    }
+
+    /**
+     * @depends testQueryInsertPrepare
+     */
     public function testFetchWhile(MySQLDb $MySQL)
     {
         $query = "SELECT * FROM `tmp_table` WHERE t_id > ? LIMIT 2";
         $list = array();
-        while($row = $MySQL->fetch($query, array(4))){
+        while($row = $MySQL->fetch($query, array(11))){
 //            var_dump($row);
             $list[] = $row;
         }
@@ -100,10 +117,8 @@ class MySQLTest extends \PHPUnit_Framework_TestCase
         $query = "SELECT * FROM `tmp_table` WHERE t_id > ? LIMIT 2";
         $list = array();
         while($row = $MySQL->fetch($query, array(5))){
-//            var_dump($row);
             $list_1 = $row; $list_2 = array();
             while($row = $MySQL->fetch($query, array(1))){
-//            var_dump($row);
                 $list_2[] = $row;
             }
             $list[] = array($list_1, $list_2);

@@ -24,7 +24,7 @@ phpunit.xml.dist 에 아래 내용을 본인의 MySQL 서버 정보를 넣고
 ```
 phpunit 실행하여 테스트 해봅니다.
 ```bash
-$ phpunit
+$ vendor/bin/phpunit
 
 ```
 
@@ -95,4 +95,18 @@ try{
     //print error message "Duplicate entry '33' for key 'PRIMARY'"
     var_dump($e->getMessage());
 }
+```
+
+#### Prepared statement query
+
+```php
+$query = "INSERT INTO test SET id = ?, reg_date = ?";
+$DB->bind_param('i');
+$result = $DB->query($query, array(33, date("Y-m-d H:i:s")));
+var_dump($result);
+
+$query = "DELETE FROM test SET id = ?";
+$DB->bind_param('i');
+$result = $DB->query($query, array(33));
+var_dump($result);
 ```
