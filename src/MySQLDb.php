@@ -39,15 +39,8 @@ class MySQLDb extends DbAbstract
         if(count($this->params)>0){
             if(!empty($this->bind_type)) {
                 $stmt = mysqli_prepare($this->connection,$query);
-                $bindType = array();
-                if(is_string($this->bind_type)) {
-                    $bindType = str_split($this->bind_type);
-                }else {
-                    $bindType = $this->bind_type;
-                }
-                foreach($bindType as $k => $bindKey){
-                    $stmt->bind_param($bindKey, $this->params[$k]);
-                }
+                $params = array_values($this->params);
+                $stmt->bind_param($this->bind_type, ...$params);
                 $stmt->execute();
                 $this->result = true;
             }else {
@@ -96,15 +89,8 @@ class MySQLDb extends DbAbstract
         if(!isset($this->result_query[$mdKey])){
             if(!empty($this->bind_type)) {
                 $stmt = mysqli_prepare($this->connection,$queryOrigin);
-                $bindType = array();
-                if(is_string($this->bind_type)) {
-                    $bindType = str_split($this->bind_type);
-                }else {
-                    $bindType = $this->bind_type;
-                }
-                foreach($bindType as $k => $bindKey){
-                    $stmt->bind_param($bindKey, $this->params[$k]);
-                }
+                $params = array_values($this->params);
+                $stmt->bind_param($this->bind_type, ...$params);
                 $stmt->execute();
                 $this->result_query[$mdKey] = $stmt->get_result();
                 $this->result_total_rows[$mdKey] = $this->result_query[$mdKey]->num_rows;
@@ -132,9 +118,21 @@ class MySQLDb extends DbAbstract
 
     public function fetchOne($query, $params = array())
     {
-        if(count($params)>0) $query = $this->parseCondition($query, $params);
-        $result = $this->query($query);
-        $this->bind_type = '';
+        if(count($params)>0) {
+            $this->params = $params;
+        }
+        if(!empty($this->bind_type)) {
+            $stmt = mysqli_prepare($this->connection,$query);
+            $params = array_values($this->params);
+            $stmt->bind_param($this->bind_type, ...$params);
+            $stmt->execute();
+            $result = $stmt->get_result();
+            $this->bind_type = '';
+        }else {
+            if(count($params)>0) $query = $this->parseCondition($query, $params);
+            $result = $this->query($query);
+            $this->bind_type = '';
+        }
         return $result->fetch_assoc();
     }
 
