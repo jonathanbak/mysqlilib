@@ -81,13 +81,9 @@ class MySQLDb extends DbAbstract
             $this->params = $params;
         }
         $queryOrigin = $query;
-        if(count($this->params)>0){
-            $query = $this->parseCondition($query, $this->params);
-        }
-
         $mdKey = md5($query);
         if(!isset($this->result_query[$mdKey])){
-            if(!empty($this->bind_type)) {
+            if(!empty($this->bind_type) && count($this->params)>0) {
                 $stmt = mysqli_prepare($this->connection,$queryOrigin);
                 $params = array_values($this->params);
                 $stmt->bind_param($this->bind_type, ...$params);
@@ -97,7 +93,9 @@ class MySQLDb extends DbAbstract
                 $this->result_current_row[$mdKey] = 0;
                 $this->bind_type = '';
             } else {
-                $query = $this->parseCondition($query, $this->params);
+                if(count($this->params)>0){
+                    $query = $this->parseCondition($query, $this->params);
+                }
                 $this->result_query[$mdKey] = $this->query($query);
                 $this->result_total_rows[$mdKey] = $this->result_query[$mdKey]->num_rows;
                 $this->result_current_row[$mdKey] = 0;
