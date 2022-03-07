@@ -77,14 +77,14 @@ class MySQLDb extends DbAbstract
      */
     public function fetch($query, $params = array())
     {
+        $queryOrigin = $query;
+        if(empty($this->bind_type) && count($params)>0){
+            $query = $this->parseCondition($query, $params);
+        }
+        $mdKey = md5($query);
         if(count($params)>0) {
             $this->params = $params;
         }
-        $queryOrigin = $query;
-        if(empty($this->bind_type) && count($this->params)>0){
-            $query = $this->parseCondition($query, $this->params);
-        }
-        $mdKey = md5($query);
         if(!isset($this->result_query[$mdKey])){
             if(!empty($this->bind_type) && count($this->params)>0) {
                 $stmt = mysqli_prepare($this->connection,$queryOrigin);
