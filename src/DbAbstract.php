@@ -47,7 +47,7 @@ abstract class DbAbstract implements DbInterface
      */
     public function realEscapeString( $value )
     {
-        return get_magic_quotes_gpc()? $value : addslashes( $value );
+        return function_exists("get_magic_quotes_gpc") && get_magic_quotes_gpc()? $value : addslashes( $value );
     }
 
     /**
@@ -57,7 +57,7 @@ abstract class DbAbstract implements DbInterface
      */
     public function unEscapeString( $value )
     {
-        return get_magic_quotes_gpc()? $value : stripslashes( $value );
+        return function_exists("get_magic_quotes_gpc") && get_magic_quotes_gpc()? $value : stripslashes( $value );
     }
 
     /**
