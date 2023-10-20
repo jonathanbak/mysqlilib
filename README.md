@@ -4,6 +4,8 @@
 
 사용해보시고 이상있으면 메일주세요~ 언제든지 문의 환영입니다.
 
+php5.6 ~ php8.2 까지 사용가능합니다.
+
 ## Install
 ```bash
 $ composer require jonathanbak/mysqlilib
