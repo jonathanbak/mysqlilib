@@ -85,7 +85,7 @@ class MySQLDb extends DbAbstract
         if(count($params)>0) {
             $this->params = $params;
         }
-        if(!isset($this->result_query[$mdKey])){
+        if(!isset($this->result_query[$mdKey]) || (isset($this->result_query[$mdKey]) && $this->result_total_rows[$mdKey] == 0)){
             if(!empty($this->bind_type) && count($this->params)>0) {
                 $stmt = mysqli_prepare($this->connection,$queryOrigin);
                 $params = array_values($this->params);
