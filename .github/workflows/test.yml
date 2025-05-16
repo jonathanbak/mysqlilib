@@ -21,7 +21,7 @@ jobs:
       matrix:
         include:
           - php-version: 7.1
-            phpunit-version: 8.5
+            phpunit-version: 7.5
           - php-version: 7.4
             phpunit-version: 9.5
           - php-version: 8.0
