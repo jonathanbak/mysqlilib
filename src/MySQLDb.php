@@ -107,13 +107,11 @@ class MySQLDb extends DbAbstract
                         if (preg_match_all('/:([a-zA-Z0-9_-]+)/i', $query, $tmpMatches)) {
                             //:param 형태
                             list($parsedQuery, $orderedParams) = $this->parseNamedParamsToPositional($query, $this->params);
-                            $this->stmt_map[$mdKey] = mysqli_prepare($this->connection, $parsedQuery);
                             $types = $this->getBindTypes($orderedParams);
-                            $this->stmt_map[$mdKey]->bind_param($types, ...$orderedParams);
+                            $this->prepareBindParam($mdKey, $parsedQuery, $types, $orderedParams);
                         } else {
-                            $this->stmt_map[$mdKey] = mysqli_prepare($this->connection, $query);
                             $types = $this->getBindTypes($this->params);
-                            $this->stmt_map[$mdKey]->bind_param($types, ...$this->params);
+                            $this->prepareBindParam($mdKey, $query, $types, $this->params);
                         }
                         $this->stmt_map[$mdKey]->execute();
                     } else {
@@ -128,7 +126,30 @@ class MySQLDb extends DbAbstract
             } else {
                 //실행한 적이 있다면.. 그래도 실행해야지?
                 if (!empty($this->stmt_map[$mdKey]) && !empty($this->params)) {
-                    $this->stmt_map[$mdKey]->bind_param($this->bind_map[$mdKey]['type'], ...$this->params);
+                    if(!empty($this->bind_type)){
+                        //bind 새로 함
+                        $this->prepareBindParam($mdKey, $query, $this->bind_type, $this->params);
+                        // bind_map 저장
+                        $this->bind_map[$mdKey] = [
+                            'type' => $this->bind_type,
+                            'params' => $this->params
+                        ];
+                        $this->resetBinding();
+                    }else if(isset($this->bind_map[$mdKey])){
+                        //이전에 bind 했을경우
+                        $this->stmt_map[$mdKey]->bind_param($this->bind_map[$mdKey]['type'], ...$this->params);
+                    }else {
+                        //bind 없이 params 만
+                        if (preg_match_all('/:([a-zA-Z0-9_-]+)/i', $query, $tmpMatches)) {
+                            //:param 형태
+                            list($parsedQuery, $orderedParams) = $this->parseNamedParamsToPositional($query, $this->params);
+                            $types = $this->getBindTypes($orderedParams);
+                            $this->prepareBindParam($mdKey, $parsedQuery, $types, $orderedParams);
+                        } else {
+                            $types = $this->getBindTypes($this->params);
+                            $this->prepareBindParam($mdKey, $query, $types, $this->params);
+                        }
+                    }
                 }
                 $this->stmt_map[$mdKey]->execute();
             }
@@ -195,7 +216,17 @@ class MySQLDb extends DbAbstract
                     $this->result_current_row[$mdKey] = 0;
                 }
             } else {
-                $this->result_current_row[$mdKey]++;
+                //두번째인데 bind가 있다면
+                if (!empty($this->bind_type) && !empty($this->params)) {
+                    $this->resetQueryResult($mdKey);
+                    //다시 초기화
+                    $this->result_query[$mdKey] = $this->query($query, $this->params);
+                    $this->result_total_rows[$mdKey] = $this->result_query[$mdKey]->num_rows ?? 0;
+                    $this->result_current_row[$mdKey] = 0;
+                } else {
+                    $this->result_current_row[$mdKey]++;
+                }
+
             }
 
             // fetch row
@@ -203,22 +234,14 @@ class MySQLDb extends DbAbstract
                 $row = $this->result_query[$mdKey]->fetch_assoc();
                 // 더 이상 데이터 없으면 캐시 제거
                 if (!$row) {
-                    unset($this->result_query[$mdKey]);
-                    unset($this->result_total_rows[$mdKey]);
-                    unset($this->result_current_row[$mdKey]);
-                    unset($this->bind_map[$mdKey]);
-                    unset($this->stmt_map[$mdKey]);
+                    $this->resetQueryResult($mdKey);
                     $this->resetBinding();
                 }
 
                 return $row;
             }
 
-            unset($this->result_query[$mdKey]);
-            unset($this->result_total_rows[$mdKey]);
-            unset($this->result_current_row[$mdKey]);
-            unset($this->bind_map[$mdKey]);
-            unset($this->stmt_map[$mdKey]);
+            $this->resetQueryResult($mdKey);
             $this->resetBinding();
 
             return null;
@@ -315,6 +338,21 @@ class MySQLDb extends DbAbstract
     {
         $this->bind_type = '';
         $this->params = [];
+    }
+
+    protected function resetQueryResult($mdKey)
+    {
+        unset($this->result_query[$mdKey]);
+        unset($this->result_total_rows[$mdKey]);
+        unset($this->result_current_row[$mdKey]);
+        unset($this->bind_map[$mdKey]);
+        unset($this->stmt_map[$mdKey]);
+    }
+
+    protected function prepareBindParam($mdKey, $query, $bindType, $params)
+    {
+        $this->stmt_map[$mdKey] = mysqli_prepare($this->connection, $query);
+        $this->stmt_map[$mdKey]->bind_param($bindType, ...$params);
     }
 
     /**
