@@ -15,7 +15,7 @@ use MySQLiLib\Mock\FakeDb;
  */
 class FakeDbTest extends TestCase
 {
-    private FakeDb $db;
+    private $db;
 
     /**
      * Set up the mock database with initial seed data before each test.
