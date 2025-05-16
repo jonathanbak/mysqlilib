@@ -5,6 +5,20 @@ use MySQLiLib\Exception;
 use MySQLiLib\MySQLDb;
 use PHPUnit\Framework\TestCase;
 
+class MySQLDbFakeNoConnection extends \MySQLiLib\MySQLDb
+{
+    public function __construct()
+    {
+        // 부모 생성자 호출 안 함 → $this->connection === null
+    }
+
+    // 실 DB 연결은 필요 없으므로 connect 오버라이드
+    public function connect($host, $user, $password, $dbName, $dbPort = 3306)
+    {
+        return null;
+    }
+}
+
 /**
  * Unit tests for the MySQLDb class which implements DbInterface.
  *
@@ -329,6 +343,61 @@ class MySQLTest extends TestCase
         $this->assertEquals(3, $row['t_id']);
         $this->assertEquals('Name3', $row['name']);
         return $MySQL;
+    }
+
+    /**
+     * Test that fetch() triggers mysqli_sql_exception handling.
+     *
+     * @depends testInsertData
+     */
+    public function testFetchCatchBlock_MysqliSqlException(MySQLDb $MySQL)
+    {
+        // 존재하지 않는 컬럼명을 이용해 오류 유도
+        $this->expectException(\MySQLiLib\Exception::class);
+        $MySQL->fetch("SELECT not_exist_column FROM tmp_table");
+    }
+
+    /**
+     * Test that fetch() triggers generic exception handling.
+     *
+     * @depends testInsertData
+     */
+    public function testFetchCatchBlock_GenericException(MySQLDb $MySQL)
+    {
+        $this->expectException(\MySQLiLib\Exception::class);
+        $this->expectExceptionMessageMatches('/Unexpected error in fetch/');
+
+        // query() 내부에 배열 전달해서 타입 오류 유도
+        $MySQL->fetch(["not a string"]);
+    }
+
+    public function testRealEscapeStringThrowsWhenNoConnection()
+    {
+        $db = new MySQLDbFakeNoConnection();
+
+        $this->expectException(\Exception::class);
+        $this->expectExceptionMessage('No active DB connection');
+
+        $db->realEscapeString("test");
+    }
+
+    public function testRealEscapeStringWithNonStringValue()
+    {
+        $MySQL = new MySQLDb(
+            $GLOBALS['DB_HOST'],
+            $GLOBALS['DB_USER'],
+            $GLOBALS['DB_PASSWD'],
+            $GLOBALS['DB_NAME'],
+            $GLOBALS['DB_PORT']
+        );
+
+        $result = $MySQL->realEscapeString(12345);  // int
+        $this->assertSame(12345, $result);
+
+        $result = $MySQL->realEscapeString(null);   // null
+        $this->assertNull($result);
+
+        $MySQL->close();
     }
 
     /**

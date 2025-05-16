@@ -155,4 +155,12 @@ class FakeDbTest extends TestCase
         }
         $this->assertCount(2, $rows);
     }
+
+    public function testFetchThrowsLogicExceptionOnNonSelect()
+    {
+        $this->expectException(\LogicException::class);
+        $this->expectExceptionMessage("Only SELECT queries can be used with fetch()");
+
+        $this->db->fetch("DELETE FROM users WHERE id = ?", [1]);
+    }
 }

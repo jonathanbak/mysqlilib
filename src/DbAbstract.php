@@ -104,11 +104,13 @@ abstract class DbAbstract implements DbInterface
      * @return array
      * @throws \Exception
      */
-    public function parseArrayToQuery( $params = array() )
+    public function parseArrayToQuery($params = array())
     {
         $tmpVal = array();
-        foreach($params as $k => $val){
-            if(preg_match('/^([0-9]+)$/i',$k,$tmpMatch)==false) $tmpVal[] = " `$k` = "." '".$this->realEscapeString($val)."'";
+        foreach ($params as $k => $val) {
+            if (!preg_match('/^([0-9]+)$/', $k)) {
+                $tmpVal[] = " `$k` = '" . $this->realEscapeString($val) . "'";
+            }
         }
         return $tmpVal;
     }
@@ -149,7 +151,11 @@ abstract class DbAbstract implements DbInterface
 
         if(is_array($searchValue)) {
             $searchValue = $this->arrayToRealEscape($searchValue);
-            $conditions = vsprintf($conditions, $searchValue);
+            if (empty($searchValue)) {
+                $conditions = preg_replace("/'%s'/", "''", $conditions);
+            } else {
+                $conditions = vsprintf($conditions, $searchValue);
+            }
         }else{
             $searchValue = $this->realEscapeString($searchValue);
             $conditions = sprintf($conditions, $searchValue);

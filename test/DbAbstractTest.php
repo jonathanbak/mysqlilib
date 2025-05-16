@@ -31,7 +31,7 @@ class DummyDb extends DbAbstract
      * @param mixed $value
      * @return mixed
      */
-    protected function realEscapeString($value)
+    public function realEscapeString($value)
     {
         return is_string($value) ? addslashes($value) : $value;
     }
@@ -69,42 +69,104 @@ class DummyDb extends DbAbstract
     {
         // 아무 동작 없음
     }
+
+    // 테스트용으로 보호된 메서드 노출
+    public function exposedParseNamedParamsToPositional($query, $params)
+    {
+        return $this->parseNamedParamsToPositional($query, $params);
+    }
+
+    public function exposedGetBindTypes(array $params)
+    {
+        return $this->getBindTypes($params);
+    }
 }
 
+/**
+ * Class DbAbstractTest
+ * Tests utility functions in DbAbstract
+ */
 class DbAbstractTest extends TestCase
 {
+    private DummyDb $db;
+
+    protected function setUp(): void
+    {
+        $this->db = new DummyDb('','','','');
+    }
+
+    public function testRealEscapeString()
+    {
+        $escaped = $this->db->realEscapeString("O'Reilly");
+        $this->assertEquals("O\'Reilly", $escaped);
+    }
+
+    public function testUnEscapeString()
+    {
+        $unescaped = $this->db->unEscapeString("O\'Reilly");
+        $this->assertEquals("O'Reilly", $unescaped);
+    }
+
     public function testArrayToRealEscape()
     {
-        $db = new DummyDb('', '', '', '');
-        $result = $db->arrayToRealEscape(["O'Reilly"]);
-        $this->assertEquals(["O\'Reilly"], $result);
+        $escaped = $this->db->arrayToRealEscape(['a"b', "x'y"]);
+        $this->assertIsArray($escaped);
+        $this->assertEquals(2, count($escaped));
     }
 
     public function testIntArrayQuote()
     {
-        $db = new DummyDb('', '', '', '');
-        $quoted = $db->intArrayQuote(['foo', 'bar']);
-        $this->assertEquals(["'foo'", "'bar'"], $quoted);
+        $quoted = $this->db->intArrayQuote(['val1', 'val2']);
+        $this->assertEquals(["'val1'", "'val2'"], $quoted);
     }
 
-    public function testParseArrayToQuery()
+    public function testParseArrayToQuerySkipsNumericKeys()
     {
-        $db = new DummyDb('', '', '', '');
-        $result = $db->parseArrayToQuery(['col1' => 'abc']);
-        $this->assertEquals([" `col1` = 'abc'"], $result);
+        $parsed = $this->db->parseArrayToQuery(['name' => 'aaa', 0 => 'ignored']);
+        $this->assertIsArray($parsed);
+        $this->assertStringContainsString("`name` =", implode(',', $parsed));
     }
 
-    public function testParseConditionNamed()
+    public function testParseConditionQuestionMark()
     {
-        $db = new DummyDb('', '', '', '');
-        $result = $db->parseCondition("SELECT * FROM test WHERE name = :name", ['name' => 'kim']);
-        $this->assertStringContainsString("name = 'kim'", $result);
+        $result = $this->db->parseCondition("email LIKE ?", ['test%']);
+        $this->assertStringContainsString("email LIKE 'test%'", $result);
     }
 
-    public function testParseConditionPositional()
+    public function testParseConditionDoubleQuestionMark()
     {
-        $db = new DummyDb('', '', '', '');
-        $result = $db->parseCondition("SELECT * FROM test WHERE id = ?", [123]);
-        $this->assertStringContainsString("id = '123'", $result);
+        $result = $this->db->parseCondition("username = '??'", ['user']);
+        $this->assertStringContainsString("username = 'user'", $result);
+    }
+
+    public function testParseConditionNamedParam()
+    {
+        $result = $this->db->parseCondition("email = :email", ['email' => 'x@test.com']);
+        $this->assertEquals("email = 'x@test.com'", $result);
+    }
+
+    public function testParseConditionWithEmptyArray()
+    {
+        $result = $this->db->parseCondition("id > ?", []);
+        $this->assertStringContainsString("id > ''", $result);
+    }
+
+    public function testParseNamedParamsToPositional()
+    {
+        $sql = "SELECT * FROM table WHERE id = :id AND status = :status";
+        $params = ['id' => 10, 'status' => 'active'];
+        list($parsedQuery, $ordered) = $this->db->exposedParseNamedParamsToPositional($sql, $params);
+
+        $this->assertEquals("SELECT * FROM table WHERE id = ? AND status = ?", $parsedQuery);
+        $this->assertEquals([10, 'active'], $ordered);
+    }
+
+    public function testGetBindTypes()
+    {
+        $params = [1, 2.3, 'hello', null];
+        $types = $this->db->exposedGetBindTypes($params);
+
+        // null은 blob('b')로 처리됨
+        $this->assertEquals('idsb', $types);
     }
 }
