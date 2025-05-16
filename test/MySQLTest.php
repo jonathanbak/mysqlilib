@@ -365,7 +365,7 @@ class MySQLTest extends TestCase
     public function testFetchCatchBlock_GenericException(MySQLDb $MySQL)
     {
         $this->expectException(\MySQLiLib\Exception::class);
-        $this->expectExceptionMessageMatches('/Unexpected error in fetch/');
+        $this->expectExceptionMessageMatches('/Invalid query format/');
 
         // query() 내부에 배열 전달해서 타입 오류 유도
         $MySQL->fetch(["not a string"]);
@@ -375,7 +375,7 @@ class MySQLTest extends TestCase
     {
         $db = new MySQLDbFakeNoConnection();
 
-        $this->expectException(\Exception::class);
+        $this->expectException(\MySQLiLib\Exception::class);
         $this->expectExceptionMessage('No active DB connection');
 
         $db->realEscapeString("test");

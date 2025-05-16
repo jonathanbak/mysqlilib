@@ -67,6 +67,9 @@ class MySQLDb extends DbAbstract
     public function query($query, $params = NULL)
     {
         try {
+            if (!is_string($query)) {
+                throw new Exception("Invalid query format. Expected string, got " . gettype($query));
+            }
             $mdKey = md5($query);
             if ($params !== NULL) {
                 //파라미터를 직접 입력한 경우 해시값 변경
@@ -141,7 +144,7 @@ class MySQLDb extends DbAbstract
         } catch (\mysqli_sql_exception $e) {
             // 모든 MySQL 예외는 MySQLiLib\Exception으로 감싸서 던짐
             throw new Exception($e->getMessage(), $e->getCode(), $e);
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             throw new Exception("Unexpected error in query(): " . $e->getMessage(), $e->getCode(), $e);
         }
     }
@@ -157,6 +160,10 @@ class MySQLDb extends DbAbstract
     public function fetch($query, $params = NULL)
     {
         try{
+            if (!is_string($query)) {
+                throw new Exception("Invalid query format. Expected string, got " . gettype($query));
+            }
+
             $mdKey = md5($query);
             if ($params !== NULL) {
                 //파라미터를 직접 입력한 경우 해시값 변경
@@ -215,7 +222,7 @@ class MySQLDb extends DbAbstract
             return null;
         } catch (\mysqli_sql_exception $e) {
             throw new Exception($e->getMessage(), $e->getCode(), $e);
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             throw new Exception("Unexpected error in fetch(): " . $e->getMessage(), $e->getCode(), $e);
         }
     }
