@@ -106,7 +106,7 @@ class MySQLDb extends DbAbstract
                     if (!empty($this->params)) {
                         if (preg_match_all('/:([a-zA-Z0-9_-]+)/i', $query, $tmpMatches)) {
                             //:param 형태
-                            [$parsedQuery, $orderedParams] = $this->parseNamedParamsToPositional($query, $this->params);
+                            list($parsedQuery, $orderedParams) = $this->parseNamedParamsToPositional($query, $this->params);
                             $this->stmt_map[$mdKey] = mysqli_prepare($this->connection, $parsedQuery);
                             $types = $this->getBindTypes($orderedParams);
                             $this->stmt_map[$mdKey]->bind_param($types, ...$orderedParams);
