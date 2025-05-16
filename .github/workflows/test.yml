@@ -19,7 +19,17 @@ jobs:
 
     strategy:
       matrix:
-        php-version: [5.6, 7.4, 8.0, 8.1, 8.2, 8.3]
+        include:
+          - php-version: 7.0
+            phpunit-version: 6.5
+          - php-version: 7.4
+            phpunit-version: 6.5
+          - php-version: 8.0
+            phpunit-version: 9.5
+          - php-version: 8.1
+            phpunit-version: 9.5
+          - php-version: 8.3
+            phpunit-version: 9.5
 
     services:
       mysql:
@@ -60,7 +70,9 @@ jobs:
         run: sudo timedatectl set-timezone Asia/Seoul
 
       - name: Install dependencies
-        run: composer install
+        run: |
+          composer require --dev phpunit/phpunit:${{ matrix.phpunit-version }} --no-update
+          composer update --prefer-dist --no-interaction
 
       - name: Run PHPUnit with coverage
         env:
