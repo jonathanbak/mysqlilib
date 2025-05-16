@@ -365,7 +365,11 @@ class MySQLTest extends TestCase
     public function testFetchCatchBlock_GenericException(MySQLDb $MySQL)
     {
         $this->expectException(Exception::class);
-        $this->expectExceptionMessageMatches('/Invalid query format/');
+        if (method_exists($this, 'expectExceptionMessageMatches')) {
+            $this->expectExceptionMessageMatches('/Invalid query format/');
+        } else {
+            $this->expectExceptionMessageRegExp('/Invalid query format/');
+        }
 
         // query() 내부에 배열 전달해서 타입 오류 유도
         $MySQL->fetch(["not a string"]);
