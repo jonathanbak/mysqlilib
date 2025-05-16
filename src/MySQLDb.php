@@ -34,11 +34,13 @@ class MySQLDb extends DbAbstract
      */
     public function connect($host, $user, $password, $dbName, $dbPort = '3306')
     {
-        $connection = @mysqli_connect($host, $user, $password, $dbName, $dbPort);
-        if (!$connection) {
-            throw new Exception(mysqli_connect_error(), mysqli_connect_errno());
+        try {
+            $connection = mysqli_connect($host, $user, $password, $dbName, $dbPort);
+
+            return $connection;
+        } catch (\Throwable $e) {
+            throw new Exception($e->getMessage(), $e->getCode(), $e);
         }
-        return $connection;
     }
 
     /**
@@ -159,7 +161,7 @@ class MySQLDb extends DbAbstract
      */
     public function fetch($query, $params = NULL)
     {
-        try{
+        try {
             if (!is_string($query)) {
                 throw new Exception("Invalid query format. Expected string, got " . gettype($query));
             }

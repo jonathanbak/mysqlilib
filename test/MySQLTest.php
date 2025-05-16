@@ -353,7 +353,7 @@ class MySQLTest extends TestCase
     public function testFetchCatchBlock_MysqliSqlException(MySQLDb $MySQL)
     {
         // 존재하지 않는 컬럼명을 이용해 오류 유도
-        $this->expectException(\MySQLiLib\Exception::class);
+        $this->expectException(Exception::class);
         $MySQL->fetch("SELECT not_exist_column FROM tmp_table");
     }
 
@@ -364,18 +364,28 @@ class MySQLTest extends TestCase
      */
     public function testFetchCatchBlock_GenericException(MySQLDb $MySQL)
     {
-        $this->expectException(\MySQLiLib\Exception::class);
+        $this->expectException(Exception::class);
         $this->expectExceptionMessageMatches('/Invalid query format/');
 
         // query() 내부에 배열 전달해서 타입 오류 유도
         $MySQL->fetch(["not a string"]);
     }
 
+    /**
+     * @depends testInsertData
+     */
+    public function testFetchReturnsNullForNonSelectQuery(MySQLDb $MySQL)
+    {
+        // DELETE 문은 result_query 에 true 들어가서 result type mismatch 발생
+        $result = $MySQL->fetch("DELETE FROM tmp_table WHERE t_id = ?", [999]);
+        $this->assertNull($result); // 이게 핵심
+    }
+
     public function testRealEscapeStringThrowsWhenNoConnection()
     {
         $db = new MySQLDbFakeNoConnection();
 
-        $this->expectException(\MySQLiLib\Exception::class);
+        $this->expectException(Exception::class);
         $this->expectExceptionMessage('No active DB connection');
 
         $db->realEscapeString("test");
