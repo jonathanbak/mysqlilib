@@ -88,7 +88,7 @@ class DummyDb extends DbAbstract
  */
 class DbAbstractTest extends TestCase
 {
-    private DummyDb $db;
+    private $db;
 
     protected function setUp(): void
     {
