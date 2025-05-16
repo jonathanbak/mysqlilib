@@ -235,7 +235,7 @@ class MySQLDb extends DbAbstract
      * @return array|null
      * @throws Exception
      */
-    public function fetchOne($query, $params = array())
+    public function fetchOne($query, $params = NULL)
     {
         $result = $this->query($query, $params);
 
@@ -263,7 +263,7 @@ class MySQLDb extends DbAbstract
      * @return array
      * @throws Exception
      */
-    public function fetchAll($query, $params = array())
+    public function fetchAll($query, $params = NULL)
     {
         $rows = array();
         while($row = $this->fetch($query, $params)){
