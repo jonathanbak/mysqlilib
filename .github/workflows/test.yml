@@ -23,7 +23,7 @@ jobs:
           - php-version: 7.0
             phpunit-version: 6.5
           - php-version: 7.4
-            phpunit-version: 6.5
+            phpunit-version: 9.5
           - php-version: 8.0
             phpunit-version: 9.5
           - php-version: 8.1
