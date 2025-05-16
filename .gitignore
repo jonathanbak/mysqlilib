@@ -4,3 +4,6 @@
 /vendor/
 composer.lock
 vendor/
+phpunit.xml
+.php-version
+.phpunit.result.cache

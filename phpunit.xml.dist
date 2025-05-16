@@ -1,25 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd"
-         bootstrap="vendor/autoload.php"
-         colors="true">
-    <testsuites>
-        <testsuite name="MySQLiLib Tests">
-            <directory>./test</directory>
-        </testsuite>
-    </testsuites>
-
-    <filter>
-        <whitelist processUncoveredFilesFromWhitelist="true">
-            <directory suffix=".php">./src</directory>
-        </whitelist>
-    </filter>
-
-    <php>
-        <var name="DB_HOST" value="localhost" />
-        <var name="DB_USER" value="test" />
-        <var name="DB_PASSWD" value="test1234" />
-        <var name="DB_NAME" value="db_test" />
-        <var name="DB_PORT" value="8889" />
-    </php>
+<phpunit
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/9.5/phpunit.xsd"
+        bootstrap="vendor/autoload.php"
+        colors="true">
+  <coverage processUncoveredFiles="true">
+    <include>
+      <directory suffix=".php">./src</directory>
+    </include>
+  </coverage>
+  <testsuites>
+    <testsuite name="MySQLiLib Tests">
+      <directory>./test</directory>
+    </testsuite>
+  </testsuites>
+  <php>
+    <var name="DB_HOST" value="127.0.0.1"/>
+    <var name="DB_USER" value="test"/>
+    <var name="DB_PASSWD" value="test1234"/>
+    <var name="DB_NAME" value="db_test"/>
+    <var name="DB_PORT" value="3306"/>
+  </php>
 </phpunit>

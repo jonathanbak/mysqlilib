@@ -1,38 +1,32 @@
 # MySQLiLib
 
-가볍게, 간단히 실무에 적용할수 있는 MySQL 라이브러리입니다.
+💡 **가볍고 실무 친화적인 PHP MySQL 라이브러리**  
+PHP 5.6부터 PHP 8.3까지 폭넓게 호환되며, 단순하고 직관적인 인터페이스로 빠르게 데이터베이스 연동을 구현할 수 있습니다.
 
-사용해보시고 이상있으면 메일주세요~ 언제든지 문의 환영입니다.
+---
 
-php5.6 ~ php8.2 까지 사용가능합니다.
+## ✨ Features
 
-## Install
+- `mysqli` 기반 경량 ORM 스타일 구현
+- `:param`, `?` 스타일의 유연한 바인딩 지원
+- Prepared Statement 자동 처리
+- Iterator 기반 `fetch()` 지원
+- 예외 처리 기반의 안정성 확보
+- FakeDb 를 통한 단위 테스트 가능
+
+---
+
+## 🛠️ Installation
+
 ```bash
-$ composer require jonathanbak/mysqlilib
-
-$ composer install
+composer require jonathanbak/mysqlilib
 ```
 
-## Test
-phpunit.xml.dist 에 아래 내용을 본인의 MySQL 서버 정보를 넣고
-```bash
-<php>
-    <var name="DB_HOST" value="localhost" />
-    <var name="DB_USER" value="test" />
-    <var name="DB_PASSWD" value="test1234" />
-    <var name="DB_NAME" value="db_test" />
-    <var name="DB_PORT" value="3306" />
-</php>
-```
-phpunit 실행하여 테스트 해봅니다.
-```bash
-$ vendor/bin/phpunit
+---
 
-```
+## 📦 Usage
 
-## Usage
-
-간단한 디비 연결 및 SELECT 쿼리 :
+### Connect & Fetch
 
 ```php
 $DB = new MySQLiLib($host, $user, $password, $dbName);
@@ -41,74 +35,108 @@ $row = $DB->fetch($query);
 var_dump($row);
 ```
 
-#### SELECT
-
-test 테이블의 id = 222 인 데이터 한 행 가져오기
+### SELECT with Parameters
 
 ```php
 $query = "SELECT * FROM test WHERE id = ?";
-$row = $DB->fetch($query, array(222));
-var_dump($row);
+$row = $DB->fetch($query, [222]);
 ```
 
-test 테이블의 id = 11 인 데이터 여러 행 가져오기
+### Fetch Multiple Rows (Iterator)
 
 ```php
 $query = "SELECT * FROM test WHERE id = ?";
-$rows = array();
-while($row = $DB->fetch($query, array(11))){
+$rows = [];
+while ($row = $DB->fetch($query, [11])) {
     $rows[] = $row;
 }
-var_dump($rows);
 ```
 
-test 테이블의 name LIKE '테스트%' 인 데이터 여러 행 가져오기
+### LIKE Query
 
 ```php
 $query = "SELECT * FROM test WHERE name LIKE '??%'";
-$rows = array();
-while($row = $DB->fetch($query, array('테스트'))){
+$rows = [];
+while ($row = $DB->fetch($query, ['테스트'])) {
+    $rows[] = $row;
+}
+```
+
+### LIKE 검색 예제 (`?` 한 개만 사용)
+
+```php
+$query = "SELECT * FROM test WHERE name LIKE ?";
+$rows = [];
+while ($row = $DB->fetch($query, ['테스트%'])) {
     $rows[] = $row;
 }
 var_dump($rows);
 ```
 
-#### INSERT, UPDATE, DELETE
+> 문자열 전체를 바인딩할 경우 `'테스트%'`처럼 와일드카드를 포함시켜 전달합니다.
+
+---
+
+### 🏷️ Named Parameter (:param) 예제
 
 ```php
-$query = "INSERT INTO test SET id = ?, reg_date = ?";
-$result = $DB->query($query, array(33, date("Y-m-d H:i:s")));
-var_dump($result);
-
-$query = "DELETE FROM test SET id = ?";
-$result = $DB->query($query, array(33));
-var_dump($result);
+$query = "SELECT * FROM test WHERE id > :id AND name = :name";
+$params = [
+    'id' => 10,
+    'name' => '홍길동'
+];
+$rows = [];
+while ($row = $DB->fetch($query, $params)) {
+    $rows[] = $row;
+}
+var_dump($rows);
 ```
 
-#### Exception
+> `:param` 스타일은 내부적으로 `?`로 치환되며, 배열의 키를 기준으로 자동 정렬하여 바인딩됩니다.
 
-test 테이블의 id = 33 인 데이터가 이미 입력되있을때 Duplicate entry '33' for key 'PRIMARY' 오류 발생시 
+---
+
+### INSERT / UPDATE / DELETE
 
 ```php
-try{
-    $query = "INSERT INTO test SET id = ?, reg_date = ?";
-    $result = $DB->query($query, array(33, date("Y-m-d H:i:s")));
-}catch(\MySQLiLib\Exception $e){
-    //print error message "Duplicate entry '33' for key 'PRIMARY'"
-    var_dump($e->getMessage());
+$DB->query("INSERT INTO test SET id = ?, reg_date = ?", [33, date("Y-m-d H:i:s")]);
+$DB->query("DELETE FROM test WHERE id = ?", [33]);
+```
+
+---
+
+### Exception Handling
+
+```php
+try {
+    $DB->query("INSERT INTO test SET id = ?", [33]);
+} catch (\MySQLiLib\Exception $e) {
+    echo "에러: " . $e->getMessage();
 }
 ```
 
-#### Prepared statement query
+---
+
+### Using `bind_param()`
 
 ```php
-$query = "INSERT INTO test SET id = ?, reg_date = ?";
 $DB->bind_param('i');
-$result = $DB->query($query, array(33, date("Y-m-d H:i:s")));
-var_dump($result);
+$DB->query("INSERT INTO test SET id = ?, reg_date = ?", [33, date("Y-m-d H:i:s")]);
 
-$query = "DELETE FROM test SET id = ?";
 $DB->bind_param('i');
-$result = $DB->query($query, array(33));
-var_dump($result);
+$DB->query("DELETE FROM test WHERE id = ?", [33]);
 ```
+
+---
+
+## 📧 Contact
+
+사용 중 문의사항이나 버그 제보는 언제든지 아래 이메일로 연락주세요:
+
+📨 **jonathanbak@gmail.com**
+
+---
+
+## 🧾 License
+
+MIT License.
