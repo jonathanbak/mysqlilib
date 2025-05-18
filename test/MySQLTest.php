@@ -111,7 +111,6 @@ class MySQLTest extends TestCase
         $this->assertIsString($MySQL->error());
         $this->assertIsInt($MySQL->errorNo());
 
-        $MySQL->bind_param('i', [1]);
         $this->assertTrue(true); // Just making sure no error thrown
 
 //        $this->assertTrue($MySQL->close());

@@ -66,91 +66,73 @@ class MySQLDb extends DbAbstract
      * @return mixed
      * @throws Exception
      */
-    public function query($query, $params = NULL)
+    public function query($query, $params = null)
     {
         try {
             if (!is_string($query)) {
                 throw new Exception("Invalid query format. Expected string, got " . gettype($query));
             }
-            $mdKey = md5($query);
-            if ($params !== NULL) {
-                //파라미터를 직접 입력한 경우 해시값 변경
-                $this->params = is_array($params) ? $params : array($params);
-                $mdKey = md5(implode('|', [$query, implode('', $this->params)]));
-            } else {
-                // 문자열 상수 제거 후 바인딩 여부 확인
-                $cleaned = preg_replace("/'([^'\\\\]*(?:\\\\.[^'\\\\]*)*)'/", "''", $query);
-                $hasBinding = preg_match('/\\?|:\\w+/', $cleaned);
 
-                if (!$hasBinding && !isset($this->stmt_map[$mdKey])) {
-                    $this->resetBinding();
-                }
+            $mdKey = md5($query);
+
+            if ($params !== null) {
+                $this->params = is_array($params) ? $params : array($params);
             }
 
-            // 초기 실행
+            $bindParams = $this->params;
+
             if (!isset($this->stmt_map[$mdKey])) {
-                //초기 실행시 bind_type 있을때
-                if (!empty($this->bind_type) && !empty($this->params)) {
+                // 초기 prepare
+                if (!empty($this->bind_type) && !empty($bindParams)) {
                     $this->stmt_map[$mdKey] = mysqli_prepare($this->connection, $query);
-                    $this->stmt_map[$mdKey]->bind_param($this->bind_type, ...$this->params);
+                    $this->bindParamsToStmt($this->stmt_map[$mdKey], $this->bind_type, $bindParams);
                     $this->stmt_map[$mdKey]->execute();
 
-                    // bind_map 저장
                     $this->bind_map[$mdKey] = [
                         'type' => $this->bind_type,
-                        'params' => $this->params
+                        'params' => $bindParams
                     ];
                     $this->resetBinding();
-                } else {
-                    //BIND TYPE 이 없을떄
-                    if (!empty($this->params)) {
-                        if (preg_match_all('/:([a-zA-Z0-9_-]+)/i', $query, $tmpMatches)) {
-                            //:param 형태
-                            list($parsedQuery, $orderedParams) = $this->parseNamedParamsToPositional($query, $this->params);
-                            $types = $this->getBindTypes($orderedParams);
-                            $this->prepareBindParam($mdKey, $parsedQuery, $types, $orderedParams);
-                        } else {
-                            $types = $this->getBindTypes($this->params);
-                            $this->prepareBindParam($mdKey, $query, $types, $this->params);
-                        }
-                        $this->stmt_map[$mdKey]->execute();
+                } elseif (!empty($bindParams)) {
+                    // Named params 또는 일반 positional
+                    if (preg_match_all('/:([a-zA-Z0-9_-]+)/i', $query, $tmpMatches)) {
+                        list($parsedQuery, $orderedParams) = $this->parseNamedParamsToPositional($query, $bindParams);
+                        $types = $this->getBindTypes($orderedParams);
+                        $this->stmt_map[$mdKey] = mysqli_prepare($this->connection, $parsedQuery);
+                        $this->bindParamsToStmt($this->stmt_map[$mdKey], $types, $orderedParams);
                     } else {
-                        //파라미터가 없다면 1회성
-                        $result = mysqli_query($this->connection, $query);
-                        if (mysqli_errno($this->connection)) {
-                            throw new Exception(mysqli_error($this->connection), mysqli_errno($this->connection));
-                        }
-                        return $result;
+                        $types = $this->getBindTypes($bindParams);
+                        $this->stmt_map[$mdKey] = mysqli_prepare($this->connection, $query);
+                        $this->bindParamsToStmt($this->stmt_map[$mdKey], $types, $bindParams);
                     }
+                    $this->stmt_map[$mdKey]->execute();
+                } else {
+                    // 파라미터 없음 (단순 쿼리)
+                    $result = mysqli_query($this->connection, $query);
+                    if (mysqli_errno($this->connection)) {
+                        throw new Exception(mysqli_error($this->connection), mysqli_errno($this->connection));
+                    }
+                    return $result;
                 }
             } else {
-                //실행한 적이 있다면.. 그래도 실행해야지?
-                if (!empty($this->stmt_map[$mdKey]) && !empty($this->params)) {
-                    if(!empty($this->bind_type)){
-                        //bind 새로 함
-                        $this->prepareBindParam($mdKey, $query, $this->bind_type, $this->params);
-                        // bind_map 저장
+                // 기존 stmt 재사용
+                if (!empty($bindParams)) {
+                    $types = !empty($this->bind_type)
+                        ? $this->bind_type
+                        : (isset($this->bind_map[$mdKey]['type']) ? $this->bind_map[$mdKey]['type'] : $this->getBindTypes($bindParams));
+                    $this->bindParamsToStmt($this->stmt_map[$mdKey], $types, $bindParams);
+
+                    // 초기 바인딩 캐시 없었다면 저장
+                    if (!isset($this->bind_map[$mdKey])) {
                         $this->bind_map[$mdKey] = [
-                            'type' => $this->bind_type,
-                            'params' => $this->params
+                            'type' => $types,
+                            'params' => $bindParams
                         ];
-                        $this->resetBinding();
-                    }else if(isset($this->bind_map[$mdKey])){
-                        //이전에 bind 했을경우
-                        $this->stmt_map[$mdKey]->bind_param($this->bind_map[$mdKey]['type'], ...$this->params);
-                    }else {
-                        //bind 없이 params 만
-                        if (preg_match_all('/:([a-zA-Z0-9_-]+)/i', $query, $tmpMatches)) {
-                            //:param 형태
-                            list($parsedQuery, $orderedParams) = $this->parseNamedParamsToPositional($query, $this->params);
-                            $types = $this->getBindTypes($orderedParams);
-                            $this->prepareBindParam($mdKey, $parsedQuery, $types, $orderedParams);
-                        } else {
-                            $types = $this->getBindTypes($this->params);
-                            $this->prepareBindParam($mdKey, $query, $types, $this->params);
-                        }
                     }
+
+                    $this->resetBinding();
                 }
+
                 $this->stmt_map[$mdKey]->execute();
             }
 
@@ -159,13 +141,13 @@ class MySQLDb extends DbAbstract
             }
 
             if ($this->stmt_map[$mdKey]->field_count > 0) {
-                return $this->stmt_map[$mdKey]->get_result(); // 결과셋 반환
+                return $this->stmt_map[$mdKey]->get_result();
             } else {
                 $this->resetBinding();
-                return true; // INSERT, UPDATE, DELETE 등은 성공 여부만
+                return true;
             }
+
         } catch (\mysqli_sql_exception $e) {
-            // 모든 MySQL 예외는 MySQLiLib\Exception으로 감싸서 던짐
             throw new Exception($e->getMessage(), $e->getCode(), $e);
         } catch (\Throwable $e) {
             throw new Exception("Unexpected error in query(): " . $e->getMessage(), $e->getCode(), $e);
@@ -188,67 +170,53 @@ class MySQLDb extends DbAbstract
             }
 
             $mdKey = md5($query);
+
             if ($params !== NULL) {
-                //파라미터를 직접 입력한 경우 해시값 변경
-                $this->params = is_array($params) ? $params : array($params);
-                $mdKey = md5(implode('|', [$query, implode('', $params)]));
-            } else {
-                // 문자열 상수 제거 후 바인딩 여부 확인
-                $cleaned = preg_replace("/'([^'\\\\]*(?:\\\\.[^'\\\\]*)*)'/", "''", $query);
-                $hasBinding = preg_match('/\\?|:\\w+/', $cleaned);
-
-                if (!$hasBinding && !isset($this->result_query[$mdKey])) {
-                    $this->resetBinding();
-                }
+                $this->params = is_array($params) ? $params : [$params];
             }
 
-            // 초기 실행
             if (!isset($this->result_query[$mdKey])) {
-                //초기 실행시 bind_type 있을때
-                if (!empty($this->bind_type) && !empty($this->params)) {
-                    $this->result_query[$mdKey] = $this->query($query, $this->params);
-                    $this->result_total_rows[$mdKey] = $this->result_query[$mdKey]->num_rows ?? 0;
-                    $this->result_current_row[$mdKey] = 0;
-                } else {
-                    //BIND TYPE 이 없을떄
-                    $this->result_query[$mdKey] = $this->query($query, $this->params);
-                    $this->result_total_rows[$mdKey] = $this->result_query[$mdKey]->num_rows ?? 0;
-                    $this->result_current_row[$mdKey] = 0;
-                }
+                $this->result_query[$mdKey] = $this->query($query, $this->params);
+                $this->result_total_rows[$mdKey] = $this->result_query[$mdKey]->num_rows ?? 0;
+                $this->result_current_row[$mdKey] = 0;
             } else {
-                //두번째인데 bind가 있다면
-                if (!empty($this->bind_type) && !empty($this->params)) {
-                    $this->resetQueryResult($mdKey);
-                    //다시 초기화
-                    $this->result_query[$mdKey] = $this->query($query, $this->params);
-                    $this->result_total_rows[$mdKey] = $this->result_query[$mdKey]->num_rows ?? 0;
-                    $this->result_current_row[$mdKey] = 0;
-                } else {
-                    $this->result_current_row[$mdKey]++;
-                }
-
+                $this->result_current_row[$mdKey]++;
             }
 
-            // fetch row
-            if (isset($this->result_query[$mdKey]) && $this->result_query[$mdKey] instanceof \mysqli_result) {
+            if ($this->result_query[$mdKey] instanceof \mysqli_result) {
                 $row = $this->result_query[$mdKey]->fetch_assoc();
-                // 더 이상 데이터 없으면 캐시 제거
                 if (!$row) {
-                    $this->resetQueryResult($mdKey);
+                    unset($this->result_query[$mdKey], $this->result_total_rows[$mdKey], $this->result_current_row[$mdKey], $this->stmt_map[$mdKey], $this->bind_map[$mdKey]);
                     $this->resetBinding();
                 }
-
                 return $row;
             }
 
-            $this->resetQueryResult($mdKey);
+            unset($this->result_query[$mdKey], $this->result_total_rows[$mdKey], $this->result_current_row[$mdKey], $this->stmt_map[$mdKey], $this->bind_map[$mdKey]);
             $this->resetBinding();
-
             return null;
+
         } catch (\mysqli_sql_exception $e) {
             throw new Exception($e->getMessage(), $e->getCode(), $e);
         } catch (\Throwable $e) {
             throw new Exception("Unexpected error in fetch(): " . $e->getMessage(), $e->getCode(), $e);
+        }
+    }
+
+    /**
+     * PHP 5.6+ 호환용 bind_param 처리 함수
+     *
+     * @param \mysqli_stmt $stmt
+     * @param string $bindType
+     * @param array $params
+     * @return void
+     */
+    protected function bindParamsToStmt($stmt, $bindType, array $params)
+    {
+        if (version_compare(PHP_VERSION, '5.6.0', '>=')) {
+            $stmt->bind_param($bindType, ...$params);
+        } else {
+            call_user_func_array([$stmt, 'bind_param'], array_merge([$bindType], $params));
         }
     }
 
@@ -338,21 +306,6 @@ class MySQLDb extends DbAbstract
     {
         $this->bind_type = '';
         $this->params = [];
-    }
-
-    protected function resetQueryResult($mdKey)
-    {
-        unset($this->result_query[$mdKey]);
-        unset($this->result_total_rows[$mdKey]);
-        unset($this->result_current_row[$mdKey]);
-        unset($this->bind_map[$mdKey]);
-        unset($this->stmt_map[$mdKey]);
-    }
-
-    protected function prepareBindParam($mdKey, $query, $bindType, $params)
-    {
-        $this->stmt_map[$mdKey] = mysqli_prepare($this->connection, $query);
-        $this->stmt_map[$mdKey]->bind_param($bindType, ...$params);
     }
 
     /**
