@@ -2,6 +2,31 @@
 
 모든 변경 사항은 [GitHub Releases](https://github.com/jonathanbak/mysqlilib/releases)에서 확인할 수 있습니다.
 
+## [1.4.0](https://github.com/jonathanbak/mysqlilib/compare/v1.3.7...v1.4.0) (2025-05-19)
+
+
+### Features
+
+* 구조 정비 및 테스트 환경 개선 ([77b5ba3](https://github.com/jonathanbak/mysqlilib/commit/77b5ba3125b0fcbcab0669ea6c09fa83ad3a12d2))
+
+
+### Bug Fixes
+
+* fetch() 반복 호출 시 쿼리 캐시 처리 로직 수정 ([7e81600](https://github.com/jonathanbak/mysqlilib/commit/7e81600eec07d98a549e76f89612e3a0ede3eede))
+* replace array destructuring with list() for PHP 7.0 compatibility ([bc5a6ed](https://github.com/jonathanbak/mysqlilib/commit/bc5a6edf4a36ded124f978cf43a627fdd2cbad26))
+* update PHP 7.4 to use PHPUnit 9.5 for compatibility ([6f30c28](https://github.com/jonathanbak/mysqlilib/commit/6f30c289ac0c54e8aae8038f97bb3142f1f3eac0))
+* wrap mysqli_connect with try-catch to standardize error handling via custom Exception ([ad162b5](https://github.com/jonathanbak/mysqlilib/commit/ad162b5d52a095e7b072c1ac73a9c95851b7a7f3))
+
+
+### Performance Improvements
+
+* optimize query/fetch by reusing prepared statements ([7762ba2](https://github.com/jonathanbak/mysqlilib/commit/7762ba202aa48187d2ef0da40771a41cd91a69d4))
+
+
+### Miscellaneous Chores
+
+* prepare release v1.3.8 with CHANGELOG update ([64769cb](https://github.com/jonathanbak/mysqlilib/commit/64769cbb757facdf1e81c1fb88740d354f8f728d))
+
 ## [v1.3.7] - 2025-04-11
 
 ### Fixed

@@ -1,20 +1,25 @@
 {
     "name": "jonathanbak/mysqlilib",
-    "description":"Simple MySQLi Library",
-    "version": "1.3.7",
-    "keywords":["mysqli","mysqli library","simple db library","simple dao"],
-    "type":"library",
-    "license":"MIT",
-    "authors":[
+    "description": "Simple MySQLi Library",
+    "version": "1.4.0",
+    "keywords": [
+        "mysqli",
+        "mysqli library",
+        "simple db library",
+        "simple dao"
+    ],
+    "type": "library",
+    "license": "MIT",
+    "authors": [
         {
-            "name":"Jonathan Bak",
+            "name": "Jonathan Bak",
             "email": "jonathanbak@gmail.com",
-            "homepage":"http://blog.devd.kr"
+            "homepage": "http://blog.devd.kr"
         }
     ],
     "homepage": "http://github.com/jonathanbak/MySQLiLib",
-    "require":{
-        "php":">=5.6.0"
+    "require": {
+        "php": ">=5.6.0"
     },
     "autoload": {
         "psr-4": {
