@@ -1,6 +1,7 @@
 {
     "name": "jonathanbak/mysqlilib",
     "description":"Simple MySQLi Library",
+    "version": "1.3.7",
     "keywords":["mysqli","mysqli library","simple db library","simple dao"],
     "type":"library",
     "license":"MIT",
