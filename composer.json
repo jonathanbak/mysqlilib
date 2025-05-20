@@ -1,7 +1,7 @@
 {
     "name": "jonathanbak/mysqlilib",
     "description": "Simple MySQLi Library",
-    "version": "1.4.0",
+    "version": "1.4.1",
     "keywords": [
         "mysqli",
         "mysqli library",
