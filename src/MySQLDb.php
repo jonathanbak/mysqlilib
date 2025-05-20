@@ -77,6 +77,9 @@ class MySQLDb extends DbAbstract
 
             if ($params !== null) {
                 $this->params = is_array($params) ? $params : array($params);
+            } else {
+                // 이전 쿼리의 파라미터를 끌고오지 않도록 초기화
+                $this->params = [];
             }
 
             $bindParams = $this->params;
@@ -106,6 +109,11 @@ class MySQLDb extends DbAbstract
                         $this->bindParamsToStmt($this->stmt_map[$mdKey], $types, $bindParams);
                     }
                     $this->stmt_map[$mdKey]->execute();
+                    $this->bind_map[$mdKey] = [
+                        'type' => $types,
+                        'params' => $bindParams
+                    ];
+                    $this->resetBinding();
                 } else {
                     // 파라미터 없음 (단순 쿼리)
                     $result = mysqli_query($this->connection, $query);
@@ -131,6 +139,12 @@ class MySQLDb extends DbAbstract
                     }
 
                     $this->resetBinding();
+                } else {
+                    $params = !empty($this->bind_map[$mdKey]['params']) ? $this->bind_map[$mdKey]['params'] : [];
+                    $types = !empty($this->bind_type)
+                        ? $this->bind_type
+                        : (isset($this->bind_map[$mdKey]['type']) ? $this->bind_map[$mdKey]['type'] : $this->getBindTypes($params));
+                    $this->bindParamsToStmt($this->stmt_map[$mdKey], $types, $params);
                 }
 
                 $this->stmt_map[$mdKey]->execute();
