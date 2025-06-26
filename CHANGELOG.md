@@ -2,6 +2,13 @@
 
 모든 변경 사항은 [GitHub Releases](https://github.com/jonathanbak/mysqlilib/releases)에서 확인할 수 있습니다.
 
+## [1.4.2](https://github.com/jonathanbak/mysqlilib/compare/v1.4.1...v1.4.2) (2025-06-26)
+
+
+### Bug Fixes
+
+* correct named param regex to exclude time values like 10:00:00 ([2c42176](https://github.com/jonathanbak/mysqlilib/commit/2c421769765e32484d44e2c32e65bb5153b76d53))
+
 ## [1.4.1](https://github.com/jonathanbak/mysqlilib/compare/v1.4.0...v1.4.1) (2025-05-20)
 
 
