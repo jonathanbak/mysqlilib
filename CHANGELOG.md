@@ -2,6 +2,13 @@
 
 모든 변경 사항은 [GitHub Releases](https://github.com/jonathanbak/mysqlilib/releases)에서 확인할 수 있습니다.
 
+## [1.4.1](https://github.com/jonathanbak/mysqlilib/compare/v1.4.0...v1.4.1) (2025-05-20)
+
+
+### Bug Fixes
+
+* ensure correct bind param handling and reuse in repeated queries ([c865478](https://github.com/jonathanbak/mysqlilib/commit/c865478651065ce74839bc5f9be1bfeefd40596d))
+
 ## [1.4.0](https://github.com/jonathanbak/mysqlilib/compare/v1.3.7...v1.4.0) (2025-05-19)
 
 
