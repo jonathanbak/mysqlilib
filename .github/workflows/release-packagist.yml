@@ -1,8 +1,9 @@
 name: Release & Notify Packagist
 
 on:
-  release:
-    types: [published]  # release-please가 머지되며 GitHub Release 생성 시 작동
+  push:
+    tags:
+      - 'v*'  # release-please가 머지되며 GitHub Release 생성 시 작동
 
 jobs:
   notify-packagist:

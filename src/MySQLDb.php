@@ -98,7 +98,7 @@ class MySQLDb extends DbAbstract
                     $this->resetBinding();
                 } elseif (!empty($bindParams)) {
                     // Named params 또는 일반 positional
-                    if (preg_match_all('/:([a-zA-Z0-9_-]+)/i', $query, $tmpMatches)) {
+                    if (preg_match_all('/:([a-zA-Z][a-zA-Z0-9_-]*)/i', $query, $tmpMatches)) {
                         list($parsedQuery, $orderedParams) = $this->parseNamedParamsToPositional($query, $bindParams);
                         $types = $this->getBindTypes($orderedParams);
                         $this->stmt_map[$mdKey] = mysqli_prepare($this->connection, $parsedQuery);
