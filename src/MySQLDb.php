@@ -57,6 +57,12 @@ class MySQLDb extends DbAbstract
         return $this;
     }
 
+    private function countPreparedPlaceholders($sql) {
+        // 문자열 리터럴('...') 제거
+        $sqlWithoutStrings = preg_replace("/'([^'\\\\]*(?:\\\\.[^'\\\\]*)*)'/", '', $sql);
+        return substr_count($sqlWithoutStrings, '?');
+    }
+
     /**
      * Execute a query with optional parameters.
      * Supports caching of prepared statements.
@@ -74,13 +80,13 @@ class MySQLDb extends DbAbstract
             }
 
             $mdKey = md5($query);
-
             if ($params !== null) {
                 $this->params = is_array($params) ? $params : array($params);
-            } else {
+            } else{
                 // 이전 쿼리의 파라미터를 끌고오지 않도록 초기화
                 $this->params = [];
             }
+            var_dump($this->params);
 
             $bindParams = $this->params;
 
@@ -264,8 +270,14 @@ class MySQLDb extends DbAbstract
      */
     public function fetchOne($query, $params = NULL)
     {
-        $result = $this->query($query, $params);
+        $numPlaceholders = $this->countPreparedPlaceholders($query);
+        if($numPlaceholders > 0 && $params === null){
+            $params = $this->params;
+        }
 
+        $result = $this->query($query, $params);
+        $mdKey = md5($query);
+        unset($this->stmt_map[$mdKey]);
         $this->resetBinding();
         return $result->fetch_assoc();
     }
