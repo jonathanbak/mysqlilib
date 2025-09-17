@@ -86,7 +86,6 @@ class MySQLDb extends DbAbstract
                 // 이전 쿼리의 파라미터를 끌고오지 않도록 초기화
                 $this->params = [];
             }
-            var_dump($this->params);
 
             $bindParams = $this->params;
 
