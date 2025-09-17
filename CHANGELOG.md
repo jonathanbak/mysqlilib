@@ -2,6 +2,13 @@
 
 모든 변경 사항은 [GitHub Releases](https://github.com/jonathanbak/mysqlilib/releases)에서 확인할 수 있습니다.
 
+## [1.4.4](https://github.com/jonathanbak/mysqlilib/compare/v1.4.3...v1.4.4) (2025-09-17)
+
+
+### Miscellaneous Chores
+
+* remove unintended debug output from previous commit ([abbc465](https://github.com/jonathanbak/mysqlilib/commit/abbc465ba58faef1b7c6fbc18ab9d1ba2e91dbd4))
+
 ## [1.4.3](https://github.com/jonathanbak/mysqlilib/compare/v1.4.2...v1.4.3) (2025-09-08)
 
 
