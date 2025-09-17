@@ -2,6 +2,13 @@
 
 모든 변경 사항은 [GitHub Releases](https://github.com/jonathanbak/mysqlilib/releases)에서 확인할 수 있습니다.
 
+## [1.4.3](https://github.com/jonathanbak/mysqlilib/compare/v1.4.2...v1.4.3) (2025-09-08)
+
+
+### Bug Fixes
+
+* prevent missing params error in fetchOne after bind_param usage ([64cd231](https://github.com/jonathanbak/mysqlilib/commit/64cd231de4cb085d7aac32ad4cc755c020726b75))
+
 ## [1.4.2](https://github.com/jonathanbak/mysqlilib/compare/v1.4.1...v1.4.2) (2025-06-26)
 
 
