@@ -85,14 +85,8 @@ while ($row = $DB->fetch($query, [11])) {
 ```
 
 ### LIKE Query
-
-```php
-$query = "SELECT * FROM test WHERE name LIKE '??%'";
-$rows = [];
-while ($row = $DB->fetch($query, ['테스트'])) {
-    $rows[] = $row;
-}
-```
+> ⚠️ LIKE 쿼리에서 `??` 치환 방식은 v1.3.0부터 더 이상 지원되지 않습니다.  
+> 바인딩 값에 `%`를 포함하여 `LIKE ?` 형식으로 사용하세요.
 
 ### LIKE 검색 예제 (`?` 한 개만 사용)
 
